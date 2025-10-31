@@ -37,6 +37,8 @@ const FunnelStepModal: React.FC<FunnelStepModalProps> = ({
       setMessageId(step.message_id);
       setDelayValue(step.delay_value);
       setDelayUnit(step.delay_unit);
+
+      loadMessageCategory(step.message_id);
     } else {
       const nextStep = existingSteps.length > 0
         ? Math.max(...existingSteps.map((s) => s.step_number)) + 1
@@ -44,6 +46,23 @@ const FunnelStepModal: React.FC<FunnelStepModalProps> = ({
       setStepNumber(nextStep);
     }
   }, [step, existingSteps]);
+
+  const loadMessageCategory = async (messageId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('message_templates')
+        .select('category')
+        .eq('id', messageId)
+        .maybeSingle();
+
+      if (error) throw error;
+      if (data && data.category) {
+        setCategory(data.category);
+      }
+    } catch (err) {
+      console.error('Error loading message category:', err);
+    }
+  };
 
   useEffect(() => {
     loadMessages();
@@ -156,7 +175,7 @@ const FunnelStepModal: React.FC<FunnelStepModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-xl w-full">
+      <div className="bg-white rounded-lg shadow-xl w-full" style={{ maxWidth: '650px' }}>
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <h3 className="text-lg font-semibold text-gray-900">
             {step ? 'Edit Funnel Step' : 'Add Funnel Step'}
@@ -255,7 +274,7 @@ const FunnelStepModal: React.FC<FunnelStepModalProps> = ({
                 }}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
-                <option value="">Select a message...</option>
+                <option value="">Select a category...</option>
                 {categories.map((cat) => (
                   <option key={cat} value={cat}>
                     {cat}
