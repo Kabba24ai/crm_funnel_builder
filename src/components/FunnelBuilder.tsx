@@ -284,6 +284,7 @@ const FunnelBuilder: React.FC = () => {
                     onAddStep={() => handleAddStep(funnel.id)}
                     onEditStep={handleEditStep}
                     onDeleteStep={(stepId) => deleteStep(stepId, funnel.id)}
+                    onReorder={() => loadFunnelSteps(funnel.id)}
                   />
                 </div>
               )}

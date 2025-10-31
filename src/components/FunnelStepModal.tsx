@@ -19,6 +19,9 @@ const TRIGGER_OPTIONS: { value: TriggerCondition; label: string }[] = [
   { value: 'custom', label: 'Custom' },
 ];
 
+const MINUTE_OPTIONS = [15, 30, 45];
+const HOUR_OPTIONS = Array.from({ length: 23 }, (_, i) => i + 1);
+
 const FunnelStepModal: React.FC<FunnelStepModalProps> = ({
   funnelId,
   step,
@@ -29,7 +32,8 @@ const FunnelStepModal: React.FC<FunnelStepModalProps> = ({
   const [stepNumber, setStepNumber] = useState(1);
   const [messageType, setMessageType] = useState<'sms' | 'email'>('sms');
   const [messageId, setMessageId] = useState('');
-  const [delayDays, setDelayDays] = useState(0);
+  const [delayUnit, setDelayUnit] = useState<'minutes' | 'hours' | 'days'>('days');
+  const [delayValue, setDelayValue] = useState(0);
   const [triggerCondition, setTriggerCondition] = useState<TriggerCondition>('rental_created');
   const [messages, setMessages] = useState<MessageTemplate[]>([]);
   const [loadingMessages, setLoadingMessages] = useState(false);
@@ -42,7 +46,8 @@ const FunnelStepModal: React.FC<FunnelStepModalProps> = ({
       setStepNumber(step.step_number);
       setMessageType(step.message_type);
       setMessageId(step.message_id);
-      setDelayDays(step.delay_days);
+      setDelayValue(step.delay_value);
+      setDelayUnit(step.delay_unit);
       setTriggerCondition(step.trigger_condition as TriggerCondition);
     } else {
       const nextStep = existingSteps.length > 0
@@ -64,6 +69,16 @@ const FunnelStepModal: React.FC<FunnelStepModalProps> = ({
       setSelectedMessage(null);
     }
   }, [messageId, messages]);
+
+  useEffect(() => {
+    if (delayUnit === 'minutes' && !MINUTE_OPTIONS.includes(delayValue)) {
+      setDelayValue(15);
+    } else if (delayUnit === 'hours' && (delayValue < 1 || delayValue > 23)) {
+      setDelayValue(1);
+    } else if (delayUnit === 'days' && delayValue < 0) {
+      setDelayValue(0);
+    }
+  }, [delayUnit]);
 
   const loadMessages = async () => {
     setLoadingMessages(true);
@@ -102,7 +117,8 @@ const FunnelStepModal: React.FC<FunnelStepModalProps> = ({
             step_number: stepNumber,
             message_id: messageId,
             message_type: messageType,
-            delay_days: delayDays,
+            delay_value: delayValue,
+            delay_unit: delayUnit,
             trigger_condition: triggerCondition,
           })
           .eq('id', step.id);
@@ -114,7 +130,8 @@ const FunnelStepModal: React.FC<FunnelStepModalProps> = ({
           step_number: stepNumber,
           message_id: messageId,
           message_type: messageType,
-          delay_days: delayDays,
+          delay_value: delayValue,
+          delay_unit: delayUnit,
           trigger_condition: triggerCondition,
         });
 
@@ -129,6 +146,51 @@ const FunnelStepModal: React.FC<FunnelStepModalProps> = ({
     }
   };
 
+  const renderDelayInput = () => {
+    if (delayUnit === 'minutes') {
+      return (
+        <select
+          value={delayValue}
+          onChange={(e) => setDelayValue(parseInt(e.target.value))}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        >
+          {MINUTE_OPTIONS.map((min) => (
+            <option key={min} value={min}>
+              {min} minutes
+            </option>
+          ))}
+        </select>
+      );
+    }
+
+    if (delayUnit === 'hours') {
+      return (
+        <select
+          value={delayValue}
+          onChange={(e) => setDelayValue(parseInt(e.target.value))}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        >
+          {HOUR_OPTIONS.map((hour) => (
+            <option key={hour} value={hour}>
+              {hour} {hour === 1 ? 'hour' : 'hours'}
+            </option>
+          ))}
+        </select>
+      );
+    }
+
+    return (
+      <input
+        type="number"
+        value={delayValue}
+        onChange={(e) => setDelayValue(parseInt(e.target.value) || 0)}
+        min={0}
+        required
+        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        placeholder="0 = immediate"
+      />
+    );
+  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -152,37 +214,6 @@ const FunnelStepModal: React.FC<FunnelStepModalProps> = ({
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Step Number <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="number"
-                value={stepNumber}
-                onChange={(e) => setStepNumber(parseInt(e.target.value) || 1)}
-                min={1}
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Delay (Days) <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="number"
-                value={delayDays}
-                onChange={(e) => setDelayDays(parseInt(e.target.value) || 0)}
-                min={0}
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-              <p className="text-xs text-gray-500 mt-1">0 = immediate</p>
-            </div>
-          </div>
-
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Trigger Condition <span className="text-red-500">*</span>
@@ -198,6 +229,29 @@ const FunnelStepModal: React.FC<FunnelStepModalProps> = ({
                 </option>
               ))}
             </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Delay <span className="text-red-500">*</span>
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <select
+                  value={delayUnit}
+                  onChange={(e) => setDelayUnit(e.target.value as 'minutes' | 'hours' | 'days')}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="minutes">Minutes</option>
+                  <option value="hours">Hours</option>
+                  <option value="days">Days</option>
+                </select>
+              </div>
+              <div>{renderDelayInput()}</div>
+            </div>
+            {delayValue === 0 && delayUnit === 'days' && (
+              <p className="text-xs text-gray-500 mt-1">0 days = immediate</p>
+            )}
           </div>
 
           <div>

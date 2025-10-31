@@ -15,6 +15,8 @@ export interface FunnelStep {
   message_id: string;
   message_type: 'sms' | 'email';
   delay_days: number;
+  delay_value: number;
+  delay_unit: 'minutes' | 'hours' | 'days';
   trigger_condition: string;
   created_at: string;
 }
