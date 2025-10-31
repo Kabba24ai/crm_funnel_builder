@@ -322,7 +322,7 @@ const FunnelBuilder: React.FC = () => {
                       <div className="flex items-center gap-3">
                         <h3 className="text-lg font-semibold text-gray-900">{funnel.name}</h3>
                         <span className="text-sm text-gray-500">
-                          {funnel.step_count} {funnel.step_count === 1 ? 'step' : 'steps'}
+                          {funnel.step_count} {funnel.step_count === 1 ? 'Step' : 'Steps'} | Add / Edit
                         </span>
                       </div>
                       <div className="flex items-center gap-3 text-xs text-gray-500">
