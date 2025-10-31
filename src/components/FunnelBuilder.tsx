@@ -321,10 +321,9 @@ const FunnelBuilder: React.FC = () => {
                     <div className="grid grid-cols-3 gap-6 items-start mb-2">
                       <div className="flex items-center gap-3">
                         <h3 className="text-lg font-semibold text-gray-900">{funnel.name}</h3>
-                        <div className="flex items-center gap-1.5 text-sm text-gray-500">
-                          <span>{funnel.step_count} {funnel.step_count === 1 ? 'Step' : 'Steps'}</span>
-                          <Pencil size={14} />
-                        </div>
+                        <span className="text-sm text-gray-500">
+                          {funnel.step_count} {funnel.step_count === 1 ? 'Step' : 'Steps'}
+                        </span>
                       </div>
                       <div className="flex items-center gap-3 text-xs text-gray-500">
                         <div className="flex items-center gap-1.5">
