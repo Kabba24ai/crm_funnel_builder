@@ -79,8 +79,5 @@ export interface Customer {
 }
 
 export type TriggerCondition =
-  | 'rental_created'
-  | 'rental_active'
-  | 'before_return'
-  | 'after_return'
-  | 'custom';
+  | 'rental_start_date'
+  | 'new_lead_added';

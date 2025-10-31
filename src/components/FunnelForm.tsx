@@ -16,11 +16,8 @@ interface FunnelFormProps {
 }
 
 const TRIGGER_OPTIONS: { value: TriggerCondition; label: string; description: string }[] = [
-  { value: 'rental_created', label: 'Rental Created', description: 'Triggers when a new rental is created' },
-  { value: 'rental_active', label: 'Rental Active', description: 'Triggers when rental becomes active' },
-  { value: 'before_return', label: 'Before Return', description: 'Triggers before the rental return date' },
-  { value: 'after_return', label: 'After Return', description: 'Triggers after the rental is returned' },
-  { value: 'custom', label: 'Custom', description: 'Custom trigger event' },
+  { value: 'rental_start_date', label: 'Rental Start Date', description: 'Triggers based on the rental start date' },
+  { value: 'new_lead_added', label: 'New Lead Added', description: 'Triggers when a new lead is added to the system' },
 ];
 
 const MINUTE_OPTIONS = [15, 30, 45];
@@ -33,7 +30,7 @@ const FunnelForm: React.FC<FunnelFormProps> = ({ funnel, onClose, onSave }) => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [showNewCategoryInput, setShowNewCategoryInput] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
-  const [triggerCondition, setTriggerCondition] = useState<TriggerCondition>('rental_created');
+  const [triggerCondition, setTriggerCondition] = useState<TriggerCondition>('rental_start_date');
   const [triggerDelayValue, setTriggerDelayValue] = useState(0);
   const [triggerDelayUnit, setTriggerDelayUnit] = useState<'minutes' | 'hours' | 'days'>('days');
   const [triggerDelayDirection, setTriggerDelayDirection] = useState<'before' | 'after'>('after');

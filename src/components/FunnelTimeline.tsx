@@ -29,22 +29,16 @@ const FunnelTimeline: React.FC<FunnelTimelineProps> = ({
 
   const getTriggerLabel = (trigger: string) => {
     const labels: Record<string, string> = {
-      rental_created: 'Rental Created',
-      rental_active: 'Rental Active',
-      before_return: 'Before Return',
-      after_return: 'After Return',
-      custom: 'Custom',
+      rental_start_date: 'Rental Start Date',
+      new_lead_added: 'New Lead Added',
     };
     return labels[trigger] || trigger.replace(/_/g, ' ');
   };
 
   const getTriggerColor = (trigger: string) => {
     const colors: Record<string, string> = {
-      rental_created: 'bg-blue-100 text-blue-700 border-blue-200',
-      rental_active: 'bg-green-100 text-green-700 border-green-200',
-      before_return: 'bg-orange-100 text-orange-700 border-orange-200',
-      after_return: 'bg-purple-100 text-purple-700 border-purple-200',
-      custom: 'bg-gray-100 text-gray-700 border-gray-200',
+      rental_start_date: 'bg-blue-100 text-blue-700 border-blue-200',
+      new_lead_added: 'bg-green-100 text-green-700 border-green-200',
     };
     return colors[trigger] || 'bg-gray-100 text-gray-700 border-gray-200';
   };
