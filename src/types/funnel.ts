@@ -55,6 +55,7 @@ export interface MessageTemplate {
   id: string;
   name: string;
   message_type: 'sms' | 'email';
+  category: string | null;
   subject: string | null;
   body: string;
   is_active: boolean;
