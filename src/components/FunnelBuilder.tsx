@@ -325,11 +325,12 @@ const FunnelBuilder: React.FC = () => {
                           {funnel.step_count} {funnel.step_count === 1 ? 'step' : 'steps'}
                         </span>
                       </div>
-                      <div className="flex flex-col gap-1 text-xs text-gray-500">
+                      <div className="flex items-center gap-3 text-xs text-gray-500">
                         <div className="flex items-center gap-1.5">
                           <Zap size={12} />
                           <span>Event: {funnel.trigger_condition.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
                         </div>
+                        <span>•</span>
                         <span>
                           Starts {funnel.trigger_delay_value === 0
                             ? 'at event'
