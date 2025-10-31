@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Copy, Power, PowerOff } from 'lucide-react';
+import { Plus, Edit2, Trash2, Copy, Power, PowerOff, Zap } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import type { SalesFunnel, FunnelStep } from '../types/funnel';
 import FunnelForm from './FunnelForm';
@@ -234,8 +234,12 @@ const FunnelBuilder: React.FC = () => {
                       </span>
                     </div>
                     {funnel.description && (
-                      <p className="text-gray-600 text-sm">{funnel.description}</p>
+                      <p className="text-gray-600 text-sm mb-2">{funnel.description}</p>
                     )}
+                    <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                      <Zap size={12} />
+                      <span>Trigger: {funnel.trigger_condition.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
+                    </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <button
@@ -281,6 +285,7 @@ const FunnelBuilder: React.FC = () => {
                 <div className="border-t border-gray-200 bg-gray-50 p-4">
                   <FunnelTimeline
                     steps={funnelSteps[funnel.id] || []}
+                    triggerCondition={funnel.trigger_condition}
                     onAddStep={() => handleAddStep(funnel.id)}
                     onEditStep={handleEditStep}
                     onDeleteStep={(stepId) => deleteStep(stepId, funnel.id)}

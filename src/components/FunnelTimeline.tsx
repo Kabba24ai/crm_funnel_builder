@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase';
 
 interface FunnelTimelineProps {
   steps: FunnelStep[];
+  triggerCondition: string;
   onAddStep: () => void;
   onEditStep: (step: FunnelStep) => void;
   onDeleteStep: (stepId: string) => void;
@@ -13,6 +14,7 @@ interface FunnelTimelineProps {
 
 const FunnelTimeline: React.FC<FunnelTimelineProps> = ({
   steps,
+  triggerCondition,
   onAddStep,
   onEditStep,
   onDeleteStep,
@@ -169,9 +171,16 @@ const FunnelTimeline: React.FC<FunnelTimelineProps> = ({
       <div className="flex items-center justify-between">
         <div>
           <h4 className="text-base font-semibold text-gray-900">Funnel Timeline</h4>
-          <p className="text-sm text-gray-600 mt-0.5">
-            {steps.length} {steps.length === 1 ? 'step' : 'steps'} • Drag to reorder
-          </p>
+          <div className="flex items-center gap-2 mt-1">
+            <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 border rounded-md text-xs font-medium ${getTriggerColor(triggerCondition)}`}>
+              <Zap size={12} />
+              <span>Trigger: {getTriggerLabel(triggerCondition)}</span>
+            </div>
+            <span className="text-sm text-gray-400">•</span>
+            <p className="text-sm text-gray-600">
+              {steps.length} {steps.length === 1 ? 'step' : 'steps'}
+            </p>
+          </div>
         </div>
         <button
           onClick={onAddStep}
@@ -240,17 +249,10 @@ const FunnelTimeline: React.FC<FunnelTimelineProps> = ({
                       </div>
 
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-2">
+                        <div className="flex items-center gap-2 mb-3">
                           <span className="px-2.5 py-0.5 text-xs font-semibold bg-blue-100 text-blue-700 rounded-full">
                             {step.message_type.toUpperCase()}
                           </span>
-                        </div>
-
-                        <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 border rounded-lg text-xs font-medium mb-3 ${getTriggerColor(
-                          step.trigger_condition
-                        )}`}>
-                          <Zap size={12} />
-                          <span>Trigger: {getTriggerLabel(step.trigger_condition)}</span>
                         </div>
 
                         <div className="flex items-center gap-4">
@@ -302,12 +304,9 @@ const FunnelTimeline: React.FC<FunnelTimelineProps> = ({
                   <div className="pt-3 border-t border-gray-100">
                     <p className="text-xs text-gray-500">
                       {step.delay_value === 0 ? (
-                        <>Sends immediately when {getTriggerLabel(step.trigger_condition).toLowerCase()}</>
+                        <>Sends immediately when triggered</>
                       ) : (
-                        <>
-                          Sends {formatDelay(step).toLowerCase()} after{' '}
-                          {getTriggerLabel(step.trigger_condition).toLowerCase()}
-                        </>
+                        <>Sends {formatDelay(step).toLowerCase()} after trigger</>
                       )}
                     </p>
                   </div>

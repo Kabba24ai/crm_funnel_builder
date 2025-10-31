@@ -2,6 +2,7 @@ export interface SalesFunnel {
   id: string;
   name: string;
   description: string | null;
+  trigger_condition: string;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -17,7 +18,6 @@ export interface FunnelStep {
   delay_days: number;
   delay_value: number;
   delay_unit: 'minutes' | 'hours' | 'days';
-  trigger_condition: string;
   created_at: string;
 }
 

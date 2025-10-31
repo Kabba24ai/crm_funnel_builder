@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import type { SalesFunnel } from '../types/funnel';
+import type { SalesFunnel, TriggerCondition } from '../types/funnel';
 
 interface FunnelFormProps {
   funnel: SalesFunnel | null;
@@ -9,9 +9,18 @@ interface FunnelFormProps {
   onSave: (funnelId?: string) => void;
 }
 
+const TRIGGER_OPTIONS: { value: TriggerCondition; label: string; description: string }[] = [
+  { value: 'rental_created', label: 'Rental Created', description: 'Triggers when a new rental is created' },
+  { value: 'rental_active', label: 'Rental Active', description: 'Triggers when rental becomes active' },
+  { value: 'before_return', label: 'Before Return', description: 'Triggers before the rental return date' },
+  { value: 'after_return', label: 'After Return', description: 'Triggers after the rental is returned' },
+  { value: 'custom', label: 'Custom', description: 'Custom trigger event' },
+];
+
 const FunnelForm: React.FC<FunnelFormProps> = ({ funnel, onClose, onSave }) => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [triggerCondition, setTriggerCondition] = useState<TriggerCondition>('rental_created');
   const [isActive, setIsActive] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -20,6 +29,7 @@ const FunnelForm: React.FC<FunnelFormProps> = ({ funnel, onClose, onSave }) => {
     if (funnel) {
       setName(funnel.name);
       setDescription(funnel.description || '');
+      setTriggerCondition(funnel.trigger_condition as TriggerCondition);
       setIsActive(funnel.is_active);
     }
   }, [funnel]);
@@ -36,6 +46,7 @@ const FunnelForm: React.FC<FunnelFormProps> = ({ funnel, onClose, onSave }) => {
           .update({
             name,
             description: description || null,
+            trigger_condition: triggerCondition,
             is_active: isActive,
             updated_at: new Date().toISOString(),
           })
@@ -49,6 +60,7 @@ const FunnelForm: React.FC<FunnelFormProps> = ({ funnel, onClose, onSave }) => {
           .insert({
             name,
             description: description || null,
+            trigger_condition: triggerCondition,
             is_active: isActive,
           })
           .select()
@@ -109,6 +121,26 @@ const FunnelForm: React.FC<FunnelFormProps> = ({ funnel, onClose, onSave }) => {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               placeholder="Brief description of this funnel's purpose"
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Trigger Event <span className="text-red-500">*</span>
+            </label>
+            <select
+              value={triggerCondition}
+              onChange={(e) => setTriggerCondition(e.target.value as TriggerCondition)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              {TRIGGER_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-gray-500 mt-1">
+              {TRIGGER_OPTIONS.find(opt => opt.value === triggerCondition)?.description}
+            </p>
           </div>
 
           <div className="flex items-center gap-3">

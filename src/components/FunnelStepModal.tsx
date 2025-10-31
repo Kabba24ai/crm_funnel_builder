@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Mail, MessageSquare } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import type { FunnelStep, MessageTemplate, TriggerCondition } from '../types/funnel';
+import type { FunnelStep, MessageTemplate } from '../types/funnel';
 
 interface FunnelStepModalProps {
   funnelId: string;
@@ -10,14 +10,6 @@ interface FunnelStepModalProps {
   onClose: () => void;
   onSave: () => void;
 }
-
-const TRIGGER_OPTIONS: { value: TriggerCondition; label: string }[] = [
-  { value: 'rental_created', label: 'Rental Created' },
-  { value: 'rental_active', label: 'Rental Active' },
-  { value: 'before_return', label: 'Before Return' },
-  { value: 'after_return', label: 'After Return' },
-  { value: 'custom', label: 'Custom' },
-];
 
 const MINUTE_OPTIONS = [15, 30, 45];
 const HOUR_OPTIONS = Array.from({ length: 23 }, (_, i) => i + 1);
@@ -34,7 +26,6 @@ const FunnelStepModal: React.FC<FunnelStepModalProps> = ({
   const [messageId, setMessageId] = useState('');
   const [delayUnit, setDelayUnit] = useState<'minutes' | 'hours' | 'days'>('days');
   const [delayValue, setDelayValue] = useState(0);
-  const [triggerCondition, setTriggerCondition] = useState<TriggerCondition>('rental_created');
   const [messages, setMessages] = useState<MessageTemplate[]>([]);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -48,7 +39,6 @@ const FunnelStepModal: React.FC<FunnelStepModalProps> = ({
       setMessageId(step.message_id);
       setDelayValue(step.delay_value);
       setDelayUnit(step.delay_unit);
-      setTriggerCondition(step.trigger_condition as TriggerCondition);
     } else {
       const nextStep = existingSteps.length > 0
         ? Math.max(...existingSteps.map((s) => s.step_number)) + 1
@@ -119,7 +109,6 @@ const FunnelStepModal: React.FC<FunnelStepModalProps> = ({
             message_type: messageType,
             delay_value: delayValue,
             delay_unit: delayUnit,
-            trigger_condition: triggerCondition,
           })
           .eq('id', step.id);
 
@@ -132,7 +121,6 @@ const FunnelStepModal: React.FC<FunnelStepModalProps> = ({
           message_type: messageType,
           delay_value: delayValue,
           delay_unit: delayUnit,
-          trigger_condition: triggerCondition,
         });
 
         if (insertError) throw insertError;
@@ -213,23 +201,6 @@ const FunnelStepModal: React.FC<FunnelStepModalProps> = ({
               {error}
             </div>
           )}
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Trigger Condition <span className="text-red-500">*</span>
-            </label>
-            <select
-              value={triggerCondition}
-              onChange={(e) => setTriggerCondition(e.target.value as TriggerCondition)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              {TRIGGER_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
