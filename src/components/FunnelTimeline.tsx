@@ -53,16 +53,14 @@ const FunnelTimeline: React.FC<FunnelTimelineProps> = ({
     const { delay_value, delay_unit } = step;
 
     if (delay_value === 0) {
-      return 'At trigger';
+      return 'Immediate';
     }
 
-    const absValue = Math.abs(delay_value);
-    const unitLabel = absValue === 1
+    const unitLabel = delay_value === 1
       ? delay_unit.slice(0, -1)
       : delay_unit;
 
-    const direction = delay_value < 0 ? 'before' : 'after';
-    return `${absValue} ${unitLabel} ${direction}`;
+    return `${delay_value} ${unitLabel}`;
   };
 
   const calculateCumulativeTime = (steps: FunnelStep[], upToIndex: number) => {
@@ -81,24 +79,20 @@ const FunnelTimeline: React.FC<FunnelTimelineProps> = ({
         break;
     }
 
-    const isNegative = totalMinutes < 0;
-    const absTotalMinutes = Math.abs(totalMinutes);
-    const prefix = isNegative ? '-' : '+';
-
-    if (totalMinutes === 0) return 'At trigger';
-    if (absTotalMinutes < 60) return `${prefix}${absTotalMinutes}m`;
-    if (absTotalMinutes < 1440) {
-      const hours = Math.floor(absTotalMinutes / 60);
-      const mins = absTotalMinutes % 60;
-      return mins > 0 ? `${prefix}${hours}h ${mins}m` : `${prefix}${hours}h`;
+    if (totalMinutes === 0) return 'At start';
+    if (totalMinutes < 60) return `+${totalMinutes}m`;
+    if (totalMinutes < 1440) {
+      const hours = Math.floor(totalMinutes / 60);
+      const mins = totalMinutes % 60;
+      return mins > 0 ? `+${hours}h ${mins}m` : `+${hours}h`;
     }
 
-    const days = Math.floor(absTotalMinutes / 1440);
-    const remainingHours = Math.floor((absTotalMinutes % 1440) / 60);
+    const days = Math.floor(totalMinutes / 1440);
+    const remainingHours = Math.floor((totalMinutes % 1440) / 60);
     if (remainingHours > 0) {
-      return `${prefix}${days}d ${remainingHours}h`;
+      return `+${days}d ${remainingHours}h`;
     }
-    return `${prefix}${days}d`;
+    return `+${days}d`;
   };
 
   const handleDragStart = (e: React.DragEvent, index: number) => {
@@ -319,11 +313,9 @@ const FunnelTimeline: React.FC<FunnelTimelineProps> = ({
                   <div className="pt-3 border-t border-gray-100">
                     <p className="text-xs text-gray-500">
                       {step.delay_value === 0 ? (
-                        <>Sends at trigger time</>
-                      ) : step.delay_value < 0 ? (
-                        <>Sends {formatDelay(step).toLowerCase()} event</>
+                        <>Sends when funnel starts</>
                       ) : (
-                        <>Sends {formatDelay(step).toLowerCase()} event</>
+                        <>Sends {formatDelay(step).toLowerCase()} after funnel starts</>
                       )}
                     </p>
                   </div>
