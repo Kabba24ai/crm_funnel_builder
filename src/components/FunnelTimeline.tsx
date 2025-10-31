@@ -238,12 +238,11 @@ const FunnelTimeline: React.FC<FunnelTimelineProps> = ({
                 <div className="p-5">
                   <div className="flex items-start justify-between gap-3 mb-4">
                     <div className="flex items-start gap-3 flex-1">
-                      <button
-                        className="mt-1 text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing"
-                        onMouseDown={(e) => e.stopPropagation()}
+                      <div
+                        className="mt-1 text-gray-400 cursor-grab active:cursor-grabbing"
                       >
                         <GripVertical size={20} />
-                      </button>
+                      </div>
 
                       <div className={`w-14 h-14 rounded-xl flex items-center justify-center ${
                         step.message_type === 'email'
@@ -294,14 +293,22 @@ const FunnelTimeline: React.FC<FunnelTimelineProps> = ({
 
                     <div className="flex items-center gap-1 flex-shrink-0">
                       <button
-                        onClick={() => onEditStep(step)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onEditStep(step);
+                        }}
+                        onMouseDown={(e) => e.stopPropagation()}
                         className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                         title="Edit"
                       >
                         <Edit2 size={18} />
                       </button>
                       <button
-                        onClick={() => onDeleteStep(step.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDeleteStep(step.id);
+                        }}
+                        onMouseDown={(e) => e.stopPropagation()}
                         className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                         title="Delete"
                       >
