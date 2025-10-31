@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, CreditCard as Edit2, Trash2, Copy, Power, PowerOff, Zap, Filter } from 'lucide-react';
+import { Plus, CreditCard as Edit2, Trash2, Copy, Power, PowerOff, Zap, Filter, Pencil } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import type { SalesFunnel, FunnelStep } from '../types/funnel';
 import FunnelForm from './FunnelForm';
@@ -321,9 +321,10 @@ const FunnelBuilder: React.FC = () => {
                     <div className="grid grid-cols-3 gap-6 items-start mb-2">
                       <div className="flex items-center gap-3">
                         <h3 className="text-lg font-semibold text-gray-900">{funnel.name}</h3>
-                        <span className="text-sm text-gray-500">
-                          {funnel.step_count} {funnel.step_count === 1 ? 'Step' : 'Steps'} | Add / Edit
-                        </span>
+                        <div className="flex items-center gap-1.5 text-sm text-gray-500">
+                          <span>{funnel.step_count} {funnel.step_count === 1 ? 'Step' : 'Steps'}</span>
+                          <Pencil size={14} />
+                        </div>
                       </div>
                       <div className="flex items-center gap-3 text-xs text-gray-500">
                         <div className="flex items-center gap-1.5">
