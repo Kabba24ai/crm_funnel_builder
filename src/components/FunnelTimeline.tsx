@@ -96,22 +96,30 @@ const FunnelTimeline: React.FC<FunnelTimelineProps> = ({
   };
 
   const handleDragStart = (e: React.DragEvent, index: number) => {
+    e.stopPropagation();
     setDraggedIndex(index);
     e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', index.toString());
   };
 
   const handleDragOver = (e: React.DragEvent, index: number) => {
     e.preventDefault();
+    e.stopPropagation();
     e.dataTransfer.dropEffect = 'move';
-    setDragOverIndex(index);
+
+    if (draggedIndex !== null && draggedIndex !== index) {
+      setDragOverIndex(index);
+    }
   };
 
-  const handleDragLeave = () => {
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.stopPropagation();
     setDragOverIndex(null);
   };
 
   const handleDrop = async (e: React.DragEvent, dropIndex: number) => {
     e.preventDefault();
+    e.stopPropagation();
 
     if (draggedIndex === null || draggedIndex === dropIndex) {
       setDraggedIndex(null);
@@ -226,16 +234,16 @@ const FunnelTimeline: React.FC<FunnelTimelineProps> = ({
                 draggable
                 onDragStart={(e) => handleDragStart(e, index)}
                 onDragOver={(e) => handleDragOver(e, index)}
-                onDragLeave={handleDragLeave}
+                onDragLeave={(e) => handleDragLeave(e)}
                 onDrop={(e) => handleDrop(e, index)}
                 onDragEnd={handleDragEnd}
-                className={`ml-6 bg-white border-2 rounded-xl shadow-sm hover:shadow-md transition-all cursor-move ${
+                className={`ml-6 bg-white border-2 rounded-xl shadow-sm hover:shadow-md transition-all cursor-move select-none ${
                   isDragging ? 'opacity-50 scale-95' : ''
                 } ${
                   isDragOver ? 'border-blue-500 scale-105' : 'border-gray-200 hover:border-blue-300'
                 }`}
               >
-                <div className="p-5">
+                <div className="p-5" draggable={false}>
                   <div className="flex items-start justify-between gap-3 mb-4">
                     <div className="flex items-start gap-3 flex-1">
                       <div
@@ -291,15 +299,17 @@ const FunnelTimeline: React.FC<FunnelTimelineProps> = ({
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1 flex-shrink-0">
+                    <div className="flex items-center gap-1 flex-shrink-0" draggable={false}>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           onEditStep(step);
                         }}
                         onMouseDown={(e) => e.stopPropagation()}
+                        onDragStart={(e) => e.preventDefault()}
                         className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                         title="Edit"
+                        draggable={false}
                       >
                         <Edit2 size={18} />
                       </button>
@@ -309,8 +319,10 @@ const FunnelTimeline: React.FC<FunnelTimelineProps> = ({
                           onDeleteStep(step.id);
                         }}
                         onMouseDown={(e) => e.stopPropagation()}
+                        onDragStart={(e) => e.preventDefault()}
                         className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                         title="Delete"
+                        draggable={false}
                       >
                         <Trash2 size={18} />
                       </button>
