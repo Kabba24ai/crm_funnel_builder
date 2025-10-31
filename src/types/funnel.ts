@@ -46,23 +46,15 @@ export interface StepExecution {
   message_type?: 'sms' | 'email';
 }
 
-export interface TextMessage {
+export interface MessageTemplate {
   id: string;
-  message_type: string;
-  context_category: string;
-  content_name: string;
-  content: string;
+  name: string;
+  message_type: 'sms' | 'email';
+  subject: string | null;
+  body: string;
+  is_active: boolean;
   created_at: string;
-}
-
-export interface EmailMessage {
-  id: string;
-  message_type: string;
-  context_category: string;
-  content_name: string;
-  subject: string;
-  content: string;
-  created_at: string;
+  updated_at: string;
 }
 
 export interface Customer {

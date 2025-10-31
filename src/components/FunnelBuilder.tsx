@@ -299,10 +299,14 @@ const FunnelBuilder: React.FC = () => {
             setShowForm(false);
             setEditingFunnel(null);
           }}
-          onSave={() => {
+          onSave={(funnelId) => {
             loadFunnels();
             setShowForm(false);
             setEditingFunnel(null);
+            if (funnelId) {
+              setSelectedFunnel(funnelId);
+              loadFunnelSteps(funnelId);
+            }
           }}
         />
       )}

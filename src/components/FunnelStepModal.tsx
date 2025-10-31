@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Mail, MessageSquare } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import type { FunnelStep, TextMessage, EmailMessage, TriggerCondition } from '../types/funnel';
+import type { FunnelStep, MessageTemplate, TriggerCondition } from '../types/funnel';
 
 interface FunnelStepModalProps {
   funnelId: string;
@@ -31,11 +31,11 @@ const FunnelStepModal: React.FC<FunnelStepModalProps> = ({
   const [messageId, setMessageId] = useState('');
   const [delayDays, setDelayDays] = useState(0);
   const [triggerCondition, setTriggerCondition] = useState<TriggerCondition>('rental_created');
-  const [messages, setMessages] = useState<(TextMessage | EmailMessage)[]>([]);
+  const [messages, setMessages] = useState<MessageTemplate[]>([]);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const [selectedMessage, setSelectedMessage] = useState<TextMessage | EmailMessage | null>(null);
+  const [selectedMessage, setSelectedMessage] = useState<MessageTemplate | null>(null);
 
   useEffect(() => {
     if (step) {
@@ -68,25 +68,15 @@ const FunnelStepModal: React.FC<FunnelStepModalProps> = ({
   const loadMessages = async () => {
     setLoadingMessages(true);
     try {
-      if (messageType === 'sms') {
-        const { data, error } = await supabase
-          .from('text_messages')
-          .select('id, context_category, content_name, content')
-          .eq('message_type', 'funnel_content')
-          .order('context_category', { ascending: true });
+      const { data, error } = await supabase
+        .from('message_templates')
+        .select('*')
+        .eq('message_type', messageType)
+        .eq('is_active', true)
+        .order('name', { ascending: true });
 
-        if (error) throw error;
-        setMessages(data || []);
-      } else {
-        const { data, error } = await supabase
-          .from('email_messages')
-          .select('id, context_category, content_name, subject, content')
-          .eq('message_type', 'email_funnel_content')
-          .order('context_category', { ascending: true });
-
-        if (error) throw error;
-        setMessages(data || []);
-      }
+      if (error) throw error;
+      setMessages(data || []);
 
       if (!step) {
         setMessageId('');
@@ -139,9 +129,6 @@ const FunnelStepModal: React.FC<FunnelStepModalProps> = ({
     }
   };
 
-  const isEmailMessage = (msg: TextMessage | EmailMessage): msg is EmailMessage => {
-    return 'subject' in msg;
-  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -259,7 +246,7 @@ const FunnelStepModal: React.FC<FunnelStepModalProps> = ({
                 <option value="">Select a message...</option>
                 {messages.map((msg) => (
                   <option key={msg.id} value={msg.id}>
-                    {msg.context_category} / {msg.content_name}
+                    {msg.name}
                   </option>
                 ))}
               </select>
@@ -269,7 +256,7 @@ const FunnelStepModal: React.FC<FunnelStepModalProps> = ({
           {selectedMessage && (
             <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
               <h4 className="text-sm font-semibold text-gray-900 mb-2">Message Preview</h4>
-              {isEmailMessage(selectedMessage) && (
+              {selectedMessage.message_type === 'email' && selectedMessage.subject && (
                 <div className="mb-2">
                   <span className="text-xs font-medium text-gray-500">Subject:</span>
                   <p className="text-sm text-gray-900">{selectedMessage.subject}</p>
@@ -278,7 +265,7 @@ const FunnelStepModal: React.FC<FunnelStepModalProps> = ({
               <div>
                 <span className="text-xs font-medium text-gray-500">Content:</span>
                 <p className="text-sm text-gray-700 whitespace-pre-wrap mt-1">
-                  {selectedMessage.content}
+                  {selectedMessage.body}
                 </p>
               </div>
             </div>

@@ -6,7 +6,7 @@ import type { SalesFunnel } from '../types/funnel';
 interface FunnelFormProps {
   funnel: SalesFunnel | null;
   onClose: () => void;
-  onSave: () => void;
+  onSave: (funnelId?: string) => void;
 }
 
 const FunnelForm: React.FC<FunnelFormProps> = ({ funnel, onClose, onSave }) => {
@@ -42,17 +42,21 @@ const FunnelForm: React.FC<FunnelFormProps> = ({ funnel, onClose, onSave }) => {
           .eq('id', funnel.id);
 
         if (updateError) throw updateError;
+        onSave();
       } else {
-        const { error: insertError } = await supabase.from('sales_funnels').insert({
-          name,
-          description: description || null,
-          is_active: isActive,
-        });
+        const { data: newFunnel, error: insertError } = await supabase
+          .from('sales_funnels')
+          .insert({
+            name,
+            description: description || null,
+            is_active: isActive,
+          })
+          .select()
+          .single();
 
         if (insertError) throw insertError;
+        onSave(newFunnel.id);
       }
-
-      onSave();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
