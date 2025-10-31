@@ -1,18 +1,16 @@
 import React, { useState } from 'react';
-import { LayoutList, Users, Clock } from 'lucide-react';
+import { LayoutList, FolderOpen } from 'lucide-react';
 import FunnelBuilder from './components/FunnelBuilder';
-import EnrollmentsDashboard from './components/EnrollmentsDashboard';
-import ExecutionQueue from './components/ExecutionQueue';
+import CategoryManagement from './components/CategoryManagement';
 
-type Tab = 'funnels' | 'enrollments' | 'queue';
+type Tab = 'funnels' | 'categories';
 
 function App() {
   const [activeTab, setActiveTab] = useState<Tab>('funnels');
 
   const tabs = [
     { id: 'funnels' as Tab, label: 'Funnel Builder', icon: LayoutList },
-    { id: 'enrollments' as Tab, label: 'Enrollments', icon: Users },
-    { id: 'queue' as Tab, label: 'Execution Queue', icon: Clock },
+    { id: 'categories' as Tab, label: 'Categories', icon: FolderOpen },
   ];
 
   return (
@@ -22,7 +20,7 @@ function App() {
           <div className="py-6">
             <h1 className="text-3xl font-bold text-gray-900">Sales Funnel Automation</h1>
             <p className="text-sm text-gray-600 mt-1">
-              Manage your automated sales funnels and customer enrollments
+              Build and organize your automated sales funnels
             </p>
           </div>
 
@@ -52,8 +50,7 @@ function App() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {activeTab === 'funnels' && <FunnelBuilder />}
-        {activeTab === 'enrollments' && <EnrollmentsDashboard />}
-        {activeTab === 'queue' && <ExecutionQueue />}
+        {activeTab === 'categories' && <CategoryManagement />}
       </main>
 
       <footer className="mt-16 bg-white border-t border-gray-200">

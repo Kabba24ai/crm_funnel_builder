@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
+import { X, Plus } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import type { SalesFunnel, TriggerCondition } from '../types/funnel';
+
+interface Category {
+  id: string;
+  name: string;
+  color: string;
+}
 
 interface FunnelFormProps {
   funnel: SalesFunnel | null;
@@ -23,6 +29,10 @@ const HOUR_OPTIONS = Array.from({ length: 23 }, (_, i) => i + 1);
 const FunnelForm: React.FC<FunnelFormProps> = ({ funnel, onClose, onSave }) => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [categoryId, setCategoryId] = useState<string>('');
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [showNewCategoryInput, setShowNewCategoryInput] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
   const [triggerCondition, setTriggerCondition] = useState<TriggerCondition>('rental_created');
   const [triggerDelayValue, setTriggerDelayValue] = useState(0);
   const [triggerDelayUnit, setTriggerDelayUnit] = useState<'minutes' | 'hours' | 'days'>('days');
@@ -32,9 +42,11 @@ const FunnelForm: React.FC<FunnelFormProps> = ({ funnel, onClose, onSave }) => {
   const [error, setError] = useState('');
 
   useEffect(() => {
+    loadCategories();
     if (funnel) {
       setName(funnel.name);
       setDescription(funnel.description || '');
+      setCategoryId(funnel.category_id || '');
       setTriggerCondition(funnel.trigger_condition as TriggerCondition);
       setTriggerDelayValue(Math.abs(funnel.trigger_delay_value));
       setTriggerDelayUnit(funnel.trigger_delay_unit);
@@ -42,6 +54,42 @@ const FunnelForm: React.FC<FunnelFormProps> = ({ funnel, onClose, onSave }) => {
       setIsActive(funnel.is_active);
     }
   }, [funnel]);
+
+  const loadCategories = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('funnel_categories')
+        .select('id, name, color')
+        .order('name', { ascending: true });
+
+      if (error) throw error;
+      setCategories(data || []);
+    } catch (error) {
+      console.error('Error loading categories:', error);
+    }
+  };
+
+  const handleAddNewCategory = async () => {
+    if (!newCategoryName.trim()) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('funnel_categories')
+        .insert({ name: newCategoryName.trim() })
+        .select('id, name, color')
+        .single();
+
+      if (error) throw error;
+
+      setCategories([...categories, data]);
+      setCategoryId(data.id);
+      setNewCategoryName('');
+      setShowNewCategoryInput(false);
+    } catch (error) {
+      console.error('Error creating category:', error);
+      alert('Failed to create category. Please try again.');
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,6 +107,7 @@ const FunnelForm: React.FC<FunnelFormProps> = ({ funnel, onClose, onSave }) => {
           .update({
             name,
             description: description || null,
+            category_id: categoryId || null,
             trigger_condition: triggerCondition,
             trigger_delay_value: finalTriggerDelayValue,
             trigger_delay_unit: triggerDelayUnit,
@@ -75,6 +124,7 @@ const FunnelForm: React.FC<FunnelFormProps> = ({ funnel, onClose, onSave }) => {
           .insert({
             name,
             description: description || null,
+            category_id: categoryId || null,
             trigger_condition: triggerCondition,
             trigger_delay_value: finalTriggerDelayValue,
             trigger_delay_unit: triggerDelayUnit,
@@ -138,6 +188,62 @@ const FunnelForm: React.FC<FunnelFormProps> = ({ funnel, onClose, onSave }) => {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               placeholder="Brief description of this funnel's purpose"
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+            {!showNewCategoryInput ? (
+              <div className="flex gap-2">
+                <select
+                  value={categoryId}
+                  onChange={(e) => setCategoryId(e.target.value)}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">No Category</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  onClick={() => setShowNewCategoryInput(true)}
+                  className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  title="Add new category"
+                >
+                  <Plus size={20} />
+                </button>
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newCategoryName}
+                  onChange={(e) => setNewCategoryName(e.target.value)}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="New category name"
+                  autoFocus
+                />
+                <button
+                  type="button"
+                  onClick={handleAddNewCategory}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Add
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowNewCategoryInput(false);
+                    setNewCategoryName('');
+                  }}
+                  className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+            )}
           </div>
 
           <div>
