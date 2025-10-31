@@ -176,67 +176,69 @@ const FunnelStepModal: React.FC<FunnelStepModalProps> = ({
             </div>
           )}
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Delay from Funnel Start <span className="text-red-500">*</span>
-            </label>
-            <div className="grid grid-cols-2 gap-3">
-              <select
-                value={delayUnit}
-                onChange={(e) => setDelayUnit(e.target.value as 'minutes' | 'hours' | 'days')}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="days">Days</option>
-                <option value="hours">Hours</option>
-                <option value="minutes">Minutes</option>
-              </select>
-              <input
-                type="number"
-                value={delayValue}
-                onChange={(e) => setDelayValue(parseInt(e.target.value) || 0)}
-                min={0}
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Delay from Funnel Start <span className="text-red-500">*</span>
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <select
+                  value={delayUnit}
+                  onChange={(e) => setDelayUnit(e.target.value as 'minutes' | 'hours' | 'days')}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="days">Days</option>
+                  <option value="hours">Hours</option>
+                  <option value="minutes">Minutes</option>
+                </select>
+                <input
+                  type="number"
+                  value={delayValue}
+                  onChange={(e) => setDelayValue(parseInt(e.target.value) || 0)}
+                  min={0}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <p className="text-xs text-gray-500 mt-1">0 = at funnel start</p>
             </div>
-            <p className="text-xs text-gray-500 mt-1">0 = at funnel start</p>
-          </div>
 
-          <div>
-            <div className="flex items-center gap-6 mb-2">
-              <label className="text-sm font-medium text-gray-700">
-                Message Type <span className="text-red-500">*</span>
-              </label>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  value="sms"
-                  checked={messageType === 'sms'}
-                  onChange={(e) => {
-                    setMessageType(e.target.value as 'sms');
-                    setCategory('');
-                    setMessageId('');
-                  }}
-                  className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                />
-                <MessageSquare size={18} className="text-gray-600" />
-                <span className="text-sm font-medium text-gray-700">SMS</span>
-              </label>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  value="email"
-                  checked={messageType === 'email'}
-                  onChange={(e) => {
-                    setMessageType(e.target.value as 'email');
-                    setCategory('');
-                    setMessageId('');
-                  }}
-                  className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                />
-                <Mail size={18} className="text-gray-600" />
-                <span className="text-sm font-medium text-gray-700">Email</span>
-              </label>
+            <div>
+              <div className="flex items-center gap-6 mb-2">
+                <label className="text-sm font-medium text-gray-700">
+                  Message Type <span className="text-red-500">*</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    value="sms"
+                    checked={messageType === 'sms'}
+                    onChange={(e) => {
+                      setMessageType(e.target.value as 'sms');
+                      setCategory('');
+                      setMessageId('');
+                    }}
+                    className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                  />
+                  <MessageSquare size={18} className="text-gray-600" />
+                  <span className="text-sm font-medium text-gray-700">SMS</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    value="email"
+                    checked={messageType === 'email'}
+                    onChange={(e) => {
+                      setMessageType(e.target.value as 'email');
+                      setCategory('');
+                      setMessageId('');
+                    }}
+                    className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                  />
+                  <Mail size={18} className="text-gray-600" />
+                  <span className="text-sm font-medium text-gray-700">Email</span>
+                </label>
+              </div>
             </div>
           </div>
 
