@@ -29,6 +29,7 @@ const FunnelStepModal: React.FC<FunnelStepModalProps> = ({
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [selectedMessage, setSelectedMessage] = useState<MessageTemplate | null>(null);
 
   useEffect(() => {
     if (step) {
@@ -51,13 +52,16 @@ const FunnelStepModal: React.FC<FunnelStepModalProps> = ({
     try {
       const { data, error } = await supabase
         .from('message_templates')
-        .select('category')
+        .select('*')
         .eq('id', messageId)
         .maybeSingle();
 
       if (error) throw error;
-      if (data && data.category) {
-        setCategory(data.category);
+      if (data) {
+        if (data.category) {
+          setCategory(data.category);
+        }
+        setSelectedMessage(data);
       }
     } catch (err) {
       console.error('Error loading message category:', err);
@@ -292,7 +296,11 @@ const FunnelStepModal: React.FC<FunnelStepModalProps> = ({
               ) : (
                 <select
                   value={messageId}
-                  onChange={(e) => setMessageId(e.target.value)}
+                  onChange={(e) => {
+                    setMessageId(e.target.value);
+                    const msg = messages.find(m => m.id === e.target.value);
+                    setSelectedMessage(msg || null);
+                  }}
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
@@ -306,6 +314,21 @@ const FunnelStepModal: React.FC<FunnelStepModalProps> = ({
               )}
             </div>
           </div>
+
+          {selectedMessage && (
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+              <h4 className="text-sm font-semibold text-gray-900 mb-2">Message Preview</h4>
+              <div className="text-sm text-gray-700">
+                {selectedMessage.message_type === 'email' && selectedMessage.subject && (
+                  <div className="mb-2">
+                    <span className="font-medium text-gray-600">Subject: </span>
+                    {selectedMessage.subject}
+                  </div>
+                )}
+                <div className="whitespace-pre-wrap">{selectedMessage.content}</div>
+              </div>
+            </div>
+          )}
 
           <div className="flex gap-3 pt-2">
             <button

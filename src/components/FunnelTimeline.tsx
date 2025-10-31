@@ -311,6 +311,23 @@ const FunnelTimeline: React.FC<FunnelTimelineProps> = ({
                   </div>
 
                   <div className="pt-3 border-t border-gray-100">
+                    {step.message_templates && (
+                      <div className="mb-3">
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <span className="text-xs font-semibold text-gray-700">Message:</span>
+                          <span className="text-xs text-gray-600">{step.message_templates.name}</span>
+                        </div>
+                        {step.message_type === 'email' && step.message_templates.subject && (
+                          <div className="text-xs text-gray-600 mb-1">
+                            <span className="font-medium">Subject: </span>
+                            {step.message_templates.subject}
+                          </div>
+                        )}
+                        <div className="text-xs text-gray-700 bg-gray-50 p-2 rounded border border-gray-200 line-clamp-2">
+                          {step.message_templates.content}
+                        </div>
+                      </div>
+                    )}
                     <p className="text-xs text-gray-500">
                       {step.delay_value === 0 ? (
                         <>Sends when funnel starts</>

@@ -52,7 +52,14 @@ const FunnelBuilder: React.FC = () => {
     try {
       const { data, error } = await supabase
         .from('funnel_steps')
-        .select('*')
+        .select(`
+          *,
+          message_templates (
+            name,
+            content,
+            subject
+          )
+        `)
         .eq('funnel_id', funnelId)
         .order('step_number', { ascending: true });
 

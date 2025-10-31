@@ -22,6 +22,11 @@ export interface FunnelStep {
   delay_value: number;
   delay_unit: 'minutes' | 'hours' | 'days';
   created_at: string;
+  message_templates?: {
+    name: string;
+    content: string;
+    subject: string | null;
+  };
 }
 
 export interface CustomerEnrollment {
@@ -57,7 +62,7 @@ export interface MessageTemplate {
   message_type: 'sms' | 'email';
   category: string | null;
   subject: string | null;
-  body: string;
+  content: string;
   is_active: boolean;
   created_at: string;
   updated_at: string;
