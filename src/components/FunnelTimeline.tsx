@@ -49,48 +49,52 @@ const FunnelTimeline: React.FC<FunnelTimelineProps> = ({
     const { delay_value, delay_unit } = step;
 
     if (delay_value === 0) {
-      return 'Immediate';
+      return 'At trigger';
     }
 
-    const unitLabel = delay_value === 1
+    const absValue = Math.abs(delay_value);
+    const unitLabel = absValue === 1
       ? delay_unit.slice(0, -1)
       : delay_unit;
 
-    return `${delay_value} ${unitLabel}`;
+    const direction = delay_value < 0 ? 'before' : 'after';
+    return `${absValue} ${unitLabel} ${direction}`;
   };
 
   const calculateCumulativeTime = (steps: FunnelStep[], upToIndex: number) => {
+    const step = steps[upToIndex];
     let totalMinutes = 0;
 
-    for (let i = 0; i <= upToIndex; i++) {
-      const step = steps[i];
-      switch (step.delay_unit) {
-        case 'minutes':
-          totalMinutes += step.delay_value;
-          break;
-        case 'hours':
-          totalMinutes += step.delay_value * 60;
-          break;
-        case 'days':
-          totalMinutes += step.delay_value * 1440;
-          break;
-      }
+    switch (step.delay_unit) {
+      case 'minutes':
+        totalMinutes = step.delay_value;
+        break;
+      case 'hours':
+        totalMinutes = step.delay_value * 60;
+        break;
+      case 'days':
+        totalMinutes = step.delay_value * 1440;
+        break;
     }
 
-    if (totalMinutes === 0) return 'Day 0';
-    if (totalMinutes < 60) return `${totalMinutes}m`;
-    if (totalMinutes < 1440) {
-      const hours = Math.floor(totalMinutes / 60);
-      const mins = totalMinutes % 60;
-      return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
+    const isNegative = totalMinutes < 0;
+    const absTotalMinutes = Math.abs(totalMinutes);
+    const prefix = isNegative ? '-' : '+';
+
+    if (totalMinutes === 0) return 'At trigger';
+    if (absTotalMinutes < 60) return `${prefix}${absTotalMinutes}m`;
+    if (absTotalMinutes < 1440) {
+      const hours = Math.floor(absTotalMinutes / 60);
+      const mins = absTotalMinutes % 60;
+      return mins > 0 ? `${prefix}${hours}h ${mins}m` : `${prefix}${hours}h`;
     }
 
-    const days = Math.floor(totalMinutes / 1440);
-    const remainingHours = Math.floor((totalMinutes % 1440) / 60);
+    const days = Math.floor(absTotalMinutes / 1440);
+    const remainingHours = Math.floor((absTotalMinutes % 1440) / 60);
     if (remainingHours > 0) {
-      return `Day ${days} +${remainingHours}h`;
+      return `${prefix}${days}d ${remainingHours}h`;
     }
-    return `Day ${days}`;
+    return `${prefix}${days}d`;
   };
 
   const handleDragStart = (e: React.DragEvent, index: number) => {
@@ -304,9 +308,11 @@ const FunnelTimeline: React.FC<FunnelTimelineProps> = ({
                   <div className="pt-3 border-t border-gray-100">
                     <p className="text-xs text-gray-500">
                       {step.delay_value === 0 ? (
-                        <>Sends immediately when triggered</>
+                        <>Sends at trigger time</>
+                      ) : step.delay_value < 0 ? (
+                        <>Sends {formatDelay(step).toLowerCase()} event</>
                       ) : (
-                        <>Sends {formatDelay(step).toLowerCase()} after trigger</>
+                        <>Sends {formatDelay(step).toLowerCase()} event</>
                       )}
                     </p>
                   </div>
@@ -316,11 +322,7 @@ const FunnelTimeline: React.FC<FunnelTimelineProps> = ({
               {index < steps.length - 1 && (
                 <div className="ml-6 pl-6 py-4 flex items-center gap-2 text-gray-400">
                   <ArrowRight size={18} />
-                  <span className="text-xs font-medium">
-                    {steps[index + 1].delay_value > 0
-                      ? `Wait ${formatDelay(steps[index + 1]).toLowerCase()}`
-                      : 'Then immediately'}
-                  </span>
+                  <span className="text-xs font-medium">Next step</span>
                 </div>
               )}
             </div>

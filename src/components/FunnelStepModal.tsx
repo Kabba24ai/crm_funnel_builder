@@ -26,6 +26,7 @@ const FunnelStepModal: React.FC<FunnelStepModalProps> = ({
   const [messageId, setMessageId] = useState('');
   const [delayUnit, setDelayUnit] = useState<'minutes' | 'hours' | 'days'>('days');
   const [delayValue, setDelayValue] = useState(0);
+  const [delayDirection, setDelayDirection] = useState<'before' | 'after'>('after');
   const [messages, setMessages] = useState<MessageTemplate[]>([]);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -37,8 +38,9 @@ const FunnelStepModal: React.FC<FunnelStepModalProps> = ({
       setStepNumber(step.step_number);
       setMessageType(step.message_type);
       setMessageId(step.message_id);
-      setDelayValue(step.delay_value);
+      setDelayValue(Math.abs(step.delay_value));
       setDelayUnit(step.delay_unit);
+      setDelayDirection(step.delay_value < 0 ? 'before' : 'after');
     } else {
       const nextStep = existingSteps.length > 0
         ? Math.max(...existingSteps.map((s) => s.step_number)) + 1
@@ -61,11 +63,12 @@ const FunnelStepModal: React.FC<FunnelStepModalProps> = ({
   }, [messageId, messages]);
 
   useEffect(() => {
-    if (delayUnit === 'minutes' && !MINUTE_OPTIONS.includes(delayValue)) {
+    const absValue = Math.abs(delayValue);
+    if (delayUnit === 'minutes' && !MINUTE_OPTIONS.includes(absValue)) {
       setDelayValue(15);
-    } else if (delayUnit === 'hours' && (delayValue < 1 || delayValue > 23)) {
+    } else if (delayUnit === 'hours' && (absValue < 1 || absValue > 23)) {
       setDelayValue(1);
-    } else if (delayUnit === 'days' && delayValue < 0) {
+    } else if (delayUnit === 'days' && absValue < 0) {
       setDelayValue(0);
     }
   }, [delayUnit]);
@@ -100,6 +103,8 @@ const FunnelStepModal: React.FC<FunnelStepModalProps> = ({
     setSaving(true);
 
     try {
+      const finalDelayValue = delayDirection === 'before' ? -Math.abs(delayValue) : Math.abs(delayValue);
+
       if (step) {
         const { error: updateError } = await supabase
           .from('funnel_steps')
@@ -107,7 +112,7 @@ const FunnelStepModal: React.FC<FunnelStepModalProps> = ({
             step_number: stepNumber,
             message_id: messageId,
             message_type: messageType,
-            delay_value: delayValue,
+            delay_value: finalDelayValue,
             delay_unit: delayUnit,
           })
           .eq('id', step.id);
@@ -119,7 +124,7 @@ const FunnelStepModal: React.FC<FunnelStepModalProps> = ({
           step_number: stepNumber,
           message_id: messageId,
           message_type: messageType,
-          delay_value: delayValue,
+          delay_value: finalDelayValue,
           delay_unit: delayUnit,
         });
 
@@ -171,11 +176,11 @@ const FunnelStepModal: React.FC<FunnelStepModalProps> = ({
       <input
         type="number"
         value={delayValue}
-        onChange={(e) => setDelayValue(parseInt(e.target.value) || 0)}
+        onChange={(e) => setDelayValue(Math.abs(parseInt(e.target.value) || 0))}
         min={0}
         required
         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-        placeholder="0 = immediate"
+        placeholder="0 = at trigger time"
       />
     );
   };
@@ -204,25 +209,49 @@ const FunnelStepModal: React.FC<FunnelStepModalProps> = ({
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Delay <span className="text-red-500">*</span>
+              Timing <span className="text-red-500">*</span>
             </label>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <select
-                  value={delayUnit}
-                  onChange={(e) => setDelayUnit(e.target.value as 'minutes' | 'hours' | 'days')}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="minutes">Minutes</option>
-                  <option value="hours">Hours</option>
-                  <option value="days">Days</option>
-                </select>
+            <div className="space-y-3">
+              <div className="flex gap-3">
+                <label className="flex items-center gap-2 cursor-pointer flex-1">
+                  <input
+                    type="radio"
+                    value="before"
+                    checked={delayDirection === 'before'}
+                    onChange={(e) => setDelayDirection(e.target.value as 'before')}
+                    className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                  />
+                  <span className="text-sm font-medium text-gray-700">Before Trigger</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer flex-1">
+                  <input
+                    type="radio"
+                    value="after"
+                    checked={delayDirection === 'after'}
+                    onChange={(e) => setDelayDirection(e.target.value as 'after')}
+                    className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                  />
+                  <span className="text-sm font-medium text-gray-700">After Trigger</span>
+                </label>
               </div>
-              <div>{renderDelayInput()}</div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <select
+                    value={delayUnit}
+                    onChange={(e) => setDelayUnit(e.target.value as 'minutes' | 'hours' | 'days')}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="minutes">Minutes</option>
+                    <option value="hours">Hours</option>
+                    <option value="days">Days</option>
+                  </select>
+                </div>
+                <div>{renderDelayInput()}</div>
+              </div>
+              {delayValue === 0 && (
+                <p className="text-xs text-gray-500">0 = at trigger time</p>
+              )}
             </div>
-            {delayValue === 0 && delayUnit === 'days' && (
-              <p className="text-xs text-gray-500 mt-1">0 days = immediate</p>
-            )}
           </div>
 
           <div>
