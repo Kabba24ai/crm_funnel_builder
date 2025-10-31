@@ -169,18 +169,18 @@ const FunnelStepModal: React.FC<FunnelStepModalProps> = ({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="p-6 space-y-5">
           {error && (
             <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
               {error}
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Delay from Funnel Start <span className="text-red-500">*</span>
-              </label>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Delay from Funnel Start <span className="text-red-500">*</span>
+            </label>
+            <div className="grid grid-cols-2 gap-3">
               <select
                 value={delayUnit}
                 onChange={(e) => setDelayUnit(e.target.value as 'minutes' | 'hours' | 'days')}
@@ -190,11 +190,6 @@ const FunnelStepModal: React.FC<FunnelStepModalProps> = ({
                 <option value="hours">Hours</option>
                 <option value="minutes">Minutes</option>
               </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                &nbsp;
-              </label>
               <input
                 type="number"
                 value={delayValue}
@@ -204,14 +199,14 @@ const FunnelStepModal: React.FC<FunnelStepModalProps> = ({
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
+            <p className="text-xs text-gray-500 mt-1">0 = at funnel start</p>
           </div>
-          <p className="text-xs text-gray-500 -mt-3">0 = at funnel start</p>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Message Type <span className="text-red-500">*</span>
-            </label>
-            <div className="flex gap-6">
+            <div className="flex items-center gap-6 mb-2">
+              <label className="text-sm font-medium text-gray-700">
+                Message Type <span className="text-red-500">*</span>
+              </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="radio"
@@ -245,48 +240,50 @@ const FunnelStepModal: React.FC<FunnelStepModalProps> = ({
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Select Message Category
-            </label>
-            <select
-              value={category}
-              onChange={(e) => {
-                setCategory(e.target.value);
-                setMessageId('');
-              }}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="">Select a message...</option>
-              {categories.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Select Message <span className="text-red-500">*</span>
-            </label>
-            {loadingMessages ? (
-              <div className="text-sm text-gray-500 py-2">Loading messages...</div>
-            ) : (
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Select Message Category
+              </label>
               <select
-                value={messageId}
-                onChange={(e) => setMessageId(e.target.value)}
-                required
+                value={category}
+                onChange={(e) => {
+                  setCategory(e.target.value);
+                  setMessageId('');
+                }}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="">Select a message...</option>
-                {messages.map((msg) => (
-                  <option key={msg.id} value={msg.id}>
-                    {msg.name}
+                {categories.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
                   </option>
                 ))}
               </select>
-            )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Select Message <span className="text-red-500">*</span>
+              </label>
+              {loadingMessages ? (
+                <div className="text-sm text-gray-500 py-2">Loading messages...</div>
+              ) : (
+                <select
+                  value={messageId}
+                  onChange={(e) => setMessageId(e.target.value)}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">Select a message...</option>
+                  {messages.map((msg) => (
+                    <option key={msg.id} value={msg.id}>
+                      {msg.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
           </div>
 
           <div className="flex gap-3 pt-2">
