@@ -318,19 +318,18 @@ const FunnelBuilder: React.FC = () => {
                     className="flex-1 cursor-pointer"
                     onClick={() => handleFunnelClick(funnel.id)}
                   >
-                    <div className="flex items-center justify-between gap-3 mb-2">
+                    <div className="grid grid-cols-3 gap-6 items-start mb-2">
                       <div className="flex items-center gap-3">
                         <h3 className="text-lg font-semibold text-gray-900">{funnel.name}</h3>
                         <span className="text-sm text-gray-500">
                           {funnel.step_count} {funnel.step_count === 1 ? 'step' : 'steps'}
                         </span>
                       </div>
-                      <div className="flex items-center gap-3 text-xs text-gray-500">
+                      <div className="flex flex-col gap-1 text-xs text-gray-500">
                         <div className="flex items-center gap-1.5">
                           <Zap size={12} />
                           <span>Event: {funnel.trigger_condition.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
                         </div>
-                        <span>•</span>
                         <span>
                           Starts {funnel.trigger_delay_value === 0
                             ? 'at event'
@@ -338,15 +337,17 @@ const FunnelBuilder: React.FC = () => {
                           }
                         </span>
                       </div>
-                      <span
-                        className={`px-2 py-1 text-xs font-medium rounded-full ${
-                          funnel.is_active
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-gray-100 text-gray-800'
-                        }`}
-                      >
-                        {funnel.is_active ? 'Active' : 'Inactive'}
-                      </span>
+                      <div className="flex justify-end">
+                        <span
+                          className={`px-2 py-1 text-xs font-medium rounded-full ${
+                            funnel.is_active
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-gray-100 text-gray-800'
+                          }`}
+                        >
+                          {funnel.is_active ? 'Active' : 'Inactive'}
+                        </span>
+                      </div>
                     </div>
                     {funnel.description && (
                       <p className="text-gray-600 text-sm">{funnel.description}</p>
