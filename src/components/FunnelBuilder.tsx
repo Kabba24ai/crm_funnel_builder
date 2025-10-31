@@ -1,13 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Copy, Power, PowerOff, Zap } from 'lucide-react';
+import { Plus, Edit2, Trash2, Copy, Power, PowerOff, Zap, Filter } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import type { SalesFunnel, FunnelStep } from '../types/funnel';
 import FunnelForm from './FunnelForm';
 import FunnelStepModal from './FunnelStepModal';
 import FunnelTimeline from './FunnelTimeline';
 
+interface Category {
+  id: string;
+  name: string;
+  color: string;
+}
+
 const FunnelBuilder: React.FC = () => {
   const [funnels, setFunnels] = useState<SalesFunnel[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingFunnel, setEditingFunnel] = useState<SalesFunnel | null>(null);
@@ -17,8 +25,23 @@ const FunnelBuilder: React.FC = () => {
   const [editingStep, setEditingStep] = useState<FunnelStep | null>(null);
 
   useEffect(() => {
+    loadCategories();
     loadFunnels();
   }, []);
+
+  const loadCategories = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('funnel_categories')
+        .select('id, name, color')
+        .order('name', { ascending: true });
+
+      if (error) throw error;
+      setCategories(data || []);
+    } catch (error) {
+      console.error('Error loading categories:', error);
+    }
+  };
 
   const loadFunnels = async () => {
     setLoading(true);
@@ -182,6 +205,12 @@ const FunnelBuilder: React.FC = () => {
     );
   }
 
+  const filteredFunnels = selectedCategoryId === 'uncategorized'
+    ? funnels.filter(funnel => !funnel.category_id)
+    : selectedCategoryId
+    ? funnels.filter(funnel => funnel.category_id === selectedCategoryId)
+    : funnels;
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -198,7 +227,59 @@ const FunnelBuilder: React.FC = () => {
         </button>
       </div>
 
-      {funnels.length === 0 ? (
+      {categories.length > 0 && (
+        <div className="bg-white rounded-lg border border-gray-200 p-4">
+          <div className="flex items-center gap-3 mb-3">
+            <Filter size={18} className="text-gray-500" />
+            <h3 className="font-medium text-gray-900">Filter by Category</h3>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => setSelectedCategoryId(null)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                selectedCategoryId === null
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              All Funnels ({funnels.length})
+            </button>
+            {categories.map((category) => {
+              const categoryFunnelCount = funnels.filter(f => f.category_id === category.id).length;
+              return (
+                <button
+                  key={category.id}
+                  onClick={() => setSelectedCategoryId(category.id)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                    selectedCategoryId === category.id
+                      ? 'text-white shadow-sm'
+                      : 'text-gray-700 hover:opacity-90'
+                  }`}
+                  style={{
+                    backgroundColor: selectedCategoryId === category.id
+                      ? category.color
+                      : `${category.color}20`,
+                  }}
+                >
+                  {category.name} ({categoryFunnelCount})
+                </button>
+              );
+            })}
+            <button
+              onClick={() => setSelectedCategoryId('uncategorized')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                selectedCategoryId === 'uncategorized'
+                  ? 'bg-gray-600 text-white shadow-sm'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Uncategorized ({funnels.filter(f => !f.category_id).length})
+            </button>
+          </div>
+        </div>
+      )}
+
+      {filteredFunnels.length === 0 && funnels.length === 0 ? (
         <div className="text-center py-16 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
           <div className="text-gray-400 mb-4">
             <Plus size={48} className="mx-auto" />
@@ -212,9 +293,21 @@ const FunnelBuilder: React.FC = () => {
             Create Your First Funnel
           </button>
         </div>
+      ) : filteredFunnels.length === 0 ? (
+        <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
+          <Filter size={48} className="mx-auto text-gray-400 mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No funnels in this category</h3>
+          <p className="text-gray-500 mb-4">Try selecting a different category or create a new funnel</p>
+          <button
+            onClick={() => setSelectedCategoryId(null)}
+            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            View All Funnels
+          </button>
+        </div>
       ) : (
         <div className="space-y-4">
-          {funnels.map((funnel) => (
+          {filteredFunnels.map((funnel) => (
             <div
               key={funnel.id}
               className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
