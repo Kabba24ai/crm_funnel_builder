@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Copy, Power, PowerOff, Zap, Filter } from 'lucide-react';
+import { Plus, CreditCard as Edit2, Trash2, Copy, Power, PowerOff, Zap, Filter } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import type { SalesFunnel, FunnelStep } from '../types/funnel';
 import FunnelForm from './FunnelForm';
