@@ -6,6 +6,8 @@ import { supabase } from '../lib/supabase';
 interface FunnelTimelineProps {
   steps: FunnelStep[];
   triggerCondition: string;
+  triggerDelayValue: number;
+  triggerDelayUnit: 'minutes' | 'hours' | 'days';
   onAddStep: () => void;
   onEditStep: (step: FunnelStep) => void;
   onDeleteStep: (stepId: string) => void;
@@ -15,6 +17,8 @@ interface FunnelTimelineProps {
 const FunnelTimeline: React.FC<FunnelTimelineProps> = ({
   steps,
   triggerCondition,
+  triggerDelayValue,
+  triggerDelayUnit,
   onAddStep,
   onEditStep,
   onDeleteStep,
@@ -175,11 +179,18 @@ const FunnelTimeline: React.FC<FunnelTimelineProps> = ({
       <div className="flex items-center justify-between">
         <div>
           <h4 className="text-base font-semibold text-gray-900">Funnel Timeline</h4>
-          <div className="flex items-center gap-2 mt-1">
+          <div className="flex items-center gap-2 mt-1 flex-wrap">
             <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 border rounded-md text-xs font-medium ${getTriggerColor(triggerCondition)}`}>
               <Zap size={12} />
-              <span>Trigger: {getTriggerLabel(triggerCondition)}</span>
+              <span>Event: {getTriggerLabel(triggerCondition)}</span>
             </div>
+            <span className="text-sm text-gray-400">•</span>
+            <span className="text-xs text-gray-600">
+              Starts {triggerDelayValue === 0
+                ? 'at event'
+                : `${Math.abs(triggerDelayValue)} ${triggerDelayUnit} ${triggerDelayValue < 0 ? 'before' : 'after'}`
+              }
+            </span>
             <span className="text-sm text-gray-400">•</span>
             <p className="text-sm text-gray-600">
               {steps.length} {steps.length === 1 ? 'step' : 'steps'}

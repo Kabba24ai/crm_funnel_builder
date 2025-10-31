@@ -3,6 +3,9 @@ export interface SalesFunnel {
   name: string;
   description: string | null;
   trigger_condition: string;
+  trigger_delay_value: number;
+  trigger_delay_unit: 'minutes' | 'hours' | 'days';
+  trigger_delay_days: number;
   is_active: boolean;
   created_at: string;
   updated_at: string;

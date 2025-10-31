@@ -17,10 +17,16 @@ const TRIGGER_OPTIONS: { value: TriggerCondition; label: string; description: st
   { value: 'custom', label: 'Custom', description: 'Custom trigger event' },
 ];
 
+const MINUTE_OPTIONS = [15, 30, 45];
+const HOUR_OPTIONS = Array.from({ length: 23 }, (_, i) => i + 1);
+
 const FunnelForm: React.FC<FunnelFormProps> = ({ funnel, onClose, onSave }) => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [triggerCondition, setTriggerCondition] = useState<TriggerCondition>('rental_created');
+  const [triggerDelayValue, setTriggerDelayValue] = useState(0);
+  const [triggerDelayUnit, setTriggerDelayUnit] = useState<'minutes' | 'hours' | 'days'>('days');
+  const [triggerDelayDirection, setTriggerDelayDirection] = useState<'before' | 'after'>('after');
   const [isActive, setIsActive] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -30,6 +36,9 @@ const FunnelForm: React.FC<FunnelFormProps> = ({ funnel, onClose, onSave }) => {
       setName(funnel.name);
       setDescription(funnel.description || '');
       setTriggerCondition(funnel.trigger_condition as TriggerCondition);
+      setTriggerDelayValue(Math.abs(funnel.trigger_delay_value));
+      setTriggerDelayUnit(funnel.trigger_delay_unit);
+      setTriggerDelayDirection(funnel.trigger_delay_value < 0 ? 'before' : 'after');
       setIsActive(funnel.is_active);
     }
   }, [funnel]);
@@ -40,6 +49,10 @@ const FunnelForm: React.FC<FunnelFormProps> = ({ funnel, onClose, onSave }) => {
     setSaving(true);
 
     try {
+      const finalTriggerDelayValue = triggerDelayDirection === 'before'
+        ? -Math.abs(triggerDelayValue)
+        : Math.abs(triggerDelayValue);
+
       if (funnel) {
         const { error: updateError } = await supabase
           .from('sales_funnels')
@@ -47,6 +60,8 @@ const FunnelForm: React.FC<FunnelFormProps> = ({ funnel, onClose, onSave }) => {
             name,
             description: description || null,
             trigger_condition: triggerCondition,
+            trigger_delay_value: finalTriggerDelayValue,
+            trigger_delay_unit: triggerDelayUnit,
             is_active: isActive,
             updated_at: new Date().toISOString(),
           })
@@ -61,6 +76,8 @@ const FunnelForm: React.FC<FunnelFormProps> = ({ funnel, onClose, onSave }) => {
             name,
             description: description || null,
             trigger_condition: triggerCondition,
+            trigger_delay_value: finalTriggerDelayValue,
+            trigger_delay_unit: triggerDelayUnit,
             is_active: isActive,
           })
           .select()
@@ -141,6 +158,58 @@ const FunnelForm: React.FC<FunnelFormProps> = ({ funnel, onClose, onSave }) => {
             <p className="text-xs text-gray-500 mt-1">
               {TRIGGER_OPTIONS.find(opt => opt.value === triggerCondition)?.description}
             </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Funnel Start Timing <span className="text-red-500">*</span>
+            </label>
+            <div className="space-y-3">
+              <div className="flex gap-3">
+                <label className="flex items-center gap-2 cursor-pointer flex-1">
+                  <input
+                    type="radio"
+                    value="before"
+                    checked={triggerDelayDirection === 'before'}
+                    onChange={(e) => setTriggerDelayDirection(e.target.value as 'before')}
+                    className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                  />
+                  <span className="text-sm font-medium text-gray-700">Before Event</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer flex-1">
+                  <input
+                    type="radio"
+                    value="after"
+                    checked={triggerDelayDirection === 'after'}
+                    onChange={(e) => setTriggerDelayDirection(e.target.value as 'after')}
+                    className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                  />
+                  <span className="text-sm font-medium text-gray-700">After Event</span>
+                </label>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <select
+                  value={triggerDelayUnit}
+                  onChange={(e) => setTriggerDelayUnit(e.target.value as 'minutes' | 'hours' | 'days')}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="minutes">Minutes</option>
+                  <option value="hours">Hours</option>
+                  <option value="days">Days</option>
+                </select>
+                <input
+                  type="number"
+                  value={triggerDelayValue}
+                  onChange={(e) => setTriggerDelayValue(Math.abs(parseInt(e.target.value) || 0))}
+                  min={0}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="0 = at event"
+                />
+              </div>
+              <p className="text-xs text-gray-500">
+                Funnel starts {triggerDelayValue === 0 ? 'at' : `${triggerDelayValue} ${triggerDelayUnit} ${triggerDelayDirection}`} the trigger event
+              </p>
+            </div>
           </div>
 
           <div className="flex items-center gap-3">

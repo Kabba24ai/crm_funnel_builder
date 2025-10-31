@@ -236,9 +236,18 @@ const FunnelBuilder: React.FC = () => {
                     {funnel.description && (
                       <p className="text-gray-600 text-sm mb-2">{funnel.description}</p>
                     )}
-                    <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                      <Zap size={12} />
-                      <span>Trigger: {funnel.trigger_condition.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
+                    <div className="flex items-center gap-3 text-xs text-gray-500">
+                      <div className="flex items-center gap-1.5">
+                        <Zap size={12} />
+                        <span>Event: {funnel.trigger_condition.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
+                      </div>
+                      <span>•</span>
+                      <span>
+                        Starts {funnel.trigger_delay_value === 0
+                          ? 'at event'
+                          : `${Math.abs(funnel.trigger_delay_value)} ${funnel.trigger_delay_unit} ${funnel.trigger_delay_value < 0 ? 'before' : 'after'}`
+                        }
+                      </span>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -286,6 +295,8 @@ const FunnelBuilder: React.FC = () => {
                   <FunnelTimeline
                     steps={funnelSteps[funnel.id] || []}
                     triggerCondition={funnel.trigger_condition}
+                    triggerDelayValue={funnel.trigger_delay_value}
+                    triggerDelayUnit={funnel.trigger_delay_unit}
                     onAddStep={() => handleAddStep(funnel.id)}
                     onEditStep={handleEditStep}
                     onDeleteStep={(stepId) => deleteStep(stepId, funnel.id)}
