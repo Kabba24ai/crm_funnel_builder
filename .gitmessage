@@ -1,0 +1,41 @@
+# <type>(<scope>): <subject>
+#
+# <body>
+#
+# <footer>
+
+# Type should be one of:
+# - feat: A new feature
+# - fix: A bug fix
+# - docs: Documentation only changes
+# - style: Changes that don't affect code meaning (formatting, etc)
+# - refactor: Code change that neither fixes a bug nor adds a feature
+# - perf: Code change that improves performance
+# - test: Adding missing tests or correcting existing tests
+# - chore: Changes to build process or auxiliary tools
+#
+# Scope is optional and should indicate what is changing (e.g., funnels, categories, api)
+#
+# Subject line should:
+# - Use imperative mood ("add" not "added" or "adds")
+# - Not capitalize first letter
+# - Not end with a period
+# - Be limited to 50 characters
+#
+# Body should:
+# - Explain what and why, not how
+# - Wrap at 72 characters
+# - Be separated from subject by blank line
+#
+# Footer should:
+# - Reference issues (e.g., "Closes #123" or "Fixes #456")
+# - Note breaking changes (e.g., "BREAKING CHANGE: description")
+#
+# Example:
+# feat(funnels): add webhook trigger support
+#
+# Add ability to trigger funnels via webhook endpoint.
+# Creates new edge function to handle webhook requests
+# and validate payload.
+#
+# Closes #45
