@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, CreditCard as Edit2, Trash2, Copy, Power, PowerOff, Zap, Filter, Pencil } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { funnelsApi, categoriesApi, funnelStepsApi } from '../lib/api';
 import type { SalesFunnel, FunnelStep } from '../types/funnel';
 import FunnelForm from './FunnelForm';
 import FunnelStepModal from './FunnelStepModal';
@@ -31,12 +31,7 @@ const FunnelBuilder: React.FC = () => {
 
   const loadCategories = async () => {
     try {
-      const { data, error } = await supabase
-        .from('funnel_categories')
-        .select('id, name, color')
-        .order('name', { ascending: true });
-
-      if (error) throw error;
+      const data = await categoriesApi.getAll();
       setCategories(data || []);
     } catch (error) {
       console.error('Error loading categories:', error);
@@ -46,24 +41,8 @@ const FunnelBuilder: React.FC = () => {
   const loadFunnels = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('sales_funnels')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      const funnelsWithStepCount = await Promise.all(
-        (data || []).map(async (funnel) => {
-          const { count } = await supabase
-            .from('funnel_steps')
-            .select('*', { count: 'exact', head: true })
-            .eq('funnel_id', funnel.id);
-          return { ...funnel, step_count: count || 0 };
-        })
-      );
-
-      setFunnels(funnelsWithStepCount);
+      const data = await funnelsApi.getAll();
+      setFunnels(data || []);
     } catch (error) {
       console.error('Error loading funnels:', error);
     } finally {
@@ -73,20 +52,7 @@ const FunnelBuilder: React.FC = () => {
 
   const loadFunnelSteps = async (funnelId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('funnel_steps')
-        .select(`
-          *,
-          message_templates (
-            name,
-            content,
-            subject
-          )
-        `)
-        .eq('funnel_id', funnelId)
-        .order('step_number', { ascending: true });
-
-      if (error) throw error;
+      const data = await funnelStepsApi.getAll(funnelId);
       setFunnelSteps((prev) => ({ ...prev, [funnelId]: data || [] }));
     } catch (error) {
       console.error('Error loading funnel steps:', error);
@@ -95,12 +61,10 @@ const FunnelBuilder: React.FC = () => {
 
   const toggleFunnelActive = async (funnel: SalesFunnel) => {
     try {
-      const { error } = await supabase
-        .from('sales_funnels')
-        .update({ is_active: !funnel.is_active, updated_at: new Date().toISOString() })
-        .eq('id', funnel.id);
-
-      if (error) throw error;
+      await funnelsApi.update(funnel.id, {
+        is_active: !funnel.is_active,
+        updated_at: new Date().toISOString(),
+      });
       loadFunnels();
     } catch (error) {
       console.error('Error toggling funnel:', error);
@@ -113,8 +77,7 @@ const FunnelBuilder: React.FC = () => {
     }
 
     try {
-      const { error } = await supabase.from('sales_funnels').delete().eq('id', id);
-      if (error) throw error;
+      await funnelsApi.delete(id);
       loadFunnels();
       if (selectedFunnel === id) {
         setSelectedFunnel(null);
@@ -126,32 +89,28 @@ const FunnelBuilder: React.FC = () => {
 
   const duplicateFunnel = async (funnel: SalesFunnel) => {
     try {
-      const { data: newFunnel, error: funnelError } = await supabase
-        .from('sales_funnels')
-        .insert({
-          name: `${funnel.name} (Copy)`,
-          description: funnel.description,
-          is_active: false,
-        })
-        .select()
-        .single();
-
-      if (funnelError) throw funnelError;
+      const newFunnel = await funnelsApi.create({
+        name: `${funnel.name} (Copy)`,
+        description: funnel.description,
+        trigger_condition: funnel.trigger_condition,
+        trigger_delay_value: funnel.trigger_delay_value,
+        trigger_delay_unit: funnel.trigger_delay_unit,
+        category_id: funnel.category_id,
+        is_active: false,
+      });
 
       const steps = funnelSteps[funnel.id] || [];
       if (steps.length > 0) {
-        const { error: stepsError } = await supabase.from('funnel_steps').insert(
+        await funnelStepsApi.create(
           steps.map((step) => ({
             funnel_id: newFunnel.id,
             step_number: step.step_number,
             message_id: step.message_id,
             message_type: step.message_type,
-            delay_days: step.delay_days,
-            trigger_condition: step.trigger_condition,
+            delay_value: step.delay_value,
+            delay_unit: step.delay_unit,
           }))
         );
-
-        if (stepsError) throw stepsError;
       }
 
       loadFunnels();
@@ -188,8 +147,7 @@ const FunnelBuilder: React.FC = () => {
     }
 
     try {
-      const { error } = await supabase.from('funnel_steps').delete().eq('id', stepId);
-      if (error) throw error;
+      await funnelStepsApi.delete(stepId);
       loadFunnelSteps(funnelId);
       loadFunnels();
     } catch (error) {

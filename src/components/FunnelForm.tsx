@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Plus } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { categoriesApi, funnelsApi } from '../lib/api';
 import type { SalesFunnel, TriggerCondition } from '../types/funnel';
 
 interface Category {
@@ -54,12 +54,7 @@ const FunnelForm: React.FC<FunnelFormProps> = ({ funnel, onClose, onSave }) => {
 
   const loadCategories = async () => {
     try {
-      const { data, error } = await supabase
-        .from('funnel_categories')
-        .select('id, name, color')
-        .order('name', { ascending: true });
-
-      if (error) throw error;
+      const data = await categoriesApi.getAll();
       setCategories(data || []);
     } catch (error) {
       console.error('Error loading categories:', error);
@@ -70,13 +65,7 @@ const FunnelForm: React.FC<FunnelFormProps> = ({ funnel, onClose, onSave }) => {
     if (!newCategoryName.trim()) return;
 
     try {
-      const { data, error } = await supabase
-        .from('funnel_categories')
-        .insert({ name: newCategoryName.trim() })
-        .select('id, name, color')
-        .single();
-
-      if (error) throw error;
+      const data = await categoriesApi.create({ name: newCategoryName.trim(), color: '#3B82F6' });
 
       setCategories([...categories, data]);
       setCategoryId(data.id);
@@ -99,38 +88,27 @@ const FunnelForm: React.FC<FunnelFormProps> = ({ funnel, onClose, onSave }) => {
         : Math.abs(triggerDelayValue);
 
       if (funnel) {
-        const { error: updateError } = await supabase
-          .from('sales_funnels')
-          .update({
-            name,
-            description: description || null,
-            category_id: categoryId || null,
-            trigger_condition: triggerCondition,
-            trigger_delay_value: finalTriggerDelayValue,
-            trigger_delay_unit: triggerDelayUnit,
-            is_active: isActive,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', funnel.id);
-
-        if (updateError) throw updateError;
+        await funnelsApi.update(funnel.id, {
+          name,
+          description: description || null,
+          category_id: categoryId || null,
+          trigger_condition: triggerCondition,
+          trigger_delay_value: finalTriggerDelayValue,
+          trigger_delay_unit: triggerDelayUnit,
+          is_active: isActive,
+          updated_at: new Date().toISOString(),
+        });
         onSave();
       } else {
-        const { data: newFunnel, error: insertError } = await supabase
-          .from('sales_funnels')
-          .insert({
-            name,
-            description: description || null,
-            category_id: categoryId || null,
-            trigger_condition: triggerCondition,
-            trigger_delay_value: finalTriggerDelayValue,
-            trigger_delay_unit: triggerDelayUnit,
-            is_active: isActive,
-          })
-          .select()
-          .single();
-
-        if (insertError) throw insertError;
+        const newFunnel = await funnelsApi.create({
+          name,
+          description: description || null,
+          category_id: categoryId || null,
+          trigger_condition: triggerCondition,
+          trigger_delay_value: finalTriggerDelayValue,
+          trigger_delay_unit: triggerDelayUnit,
+          is_active: isActive,
+        });
         onSave(newFunnel.id);
       }
     } catch (err) {

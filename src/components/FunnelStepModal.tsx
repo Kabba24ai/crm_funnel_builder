@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Mail, MessageSquare } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { messagesApi, funnelStepsApi } from '../lib/api';
 import type { FunnelStep, MessageTemplate } from '../types/funnel';
 
 interface FunnelStepModalProps {
@@ -50,13 +50,7 @@ const FunnelStepModal: React.FC<FunnelStepModalProps> = ({
 
   const loadMessageCategory = async (messageId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('message_templates')
-        .select('*')
-        .eq('id', messageId)
-        .maybeSingle();
-
-      if (error) throw error;
+      const data = await messagesApi.getOne(messageId);
       if (data) {
         if (data.category) {
           setCategory(data.category);
@@ -75,20 +69,13 @@ const FunnelStepModal: React.FC<FunnelStepModalProps> = ({
   const loadMessages = async () => {
     setLoadingMessages(true);
     try {
-      let query = supabase
-        .from('message_templates')
-        .select('*')
-        .eq('message_type', messageType)
-        .eq('is_active', true);
+      const data = await messagesApi.getAll(category || undefined);
 
-      if (category) {
-        query = query.eq('category', category);
-      }
+      const filteredData = (data || []).filter((m: MessageTemplate) =>
+        m.message_type === messageType && m.is_active
+      );
 
-      const { data, error } = await query.order('name', { ascending: true });
-
-      if (error) throw error;
-      setMessages(data || []);
+      setMessages(filteredData);
 
       if (!step) {
         setMessageId('');
@@ -96,7 +83,7 @@ const FunnelStepModal: React.FC<FunnelStepModalProps> = ({
 
       const uniqueCategories = Array.from(
         new Set(
-          (data || [])
+          filteredData
             .map((m) => m.category)
             .filter((c): c is string => c != null && c.trim() !== '')
         )
@@ -111,17 +98,15 @@ const FunnelStepModal: React.FC<FunnelStepModalProps> = ({
 
   const loadCategories = async () => {
     try {
-      const { data, error } = await supabase
-        .from('message_templates')
-        .select('category')
-        .eq('message_type', messageType)
-        .eq('is_active', true);
+      const data = await messagesApi.getAll();
 
-      if (error) throw error;
+      const filteredData = (data || []).filter((m: MessageTemplate) =>
+        m.message_type === messageType && m.is_active
+      );
 
       const uniqueCategories = Array.from(
         new Set(
-          (data || [])
+          filteredData
             .map((m) => m.category)
             .filter((c): c is string => c != null && c.trim() !== '')
         )
@@ -144,20 +129,15 @@ const FunnelStepModal: React.FC<FunnelStepModalProps> = ({
 
     try {
       if (step) {
-        const { error: updateError } = await supabase
-          .from('funnel_steps')
-          .update({
-            step_number: stepNumber,
-            message_id: messageId,
-            message_type: messageType,
-            delay_value: delayValue,
-            delay_unit: delayUnit,
-          })
-          .eq('id', step.id);
-
-        if (updateError) throw updateError;
+        await funnelStepsApi.update(step.id, {
+          step_number: stepNumber,
+          message_id: messageId,
+          message_type: messageType,
+          delay_value: delayValue,
+          delay_unit: delayUnit,
+        });
       } else {
-        const { error: insertError } = await supabase.from('funnel_steps').insert({
+        await funnelStepsApi.create({
           funnel_id: funnelId,
           step_number: stepNumber,
           message_id: messageId,
@@ -165,8 +145,6 @@ const FunnelStepModal: React.FC<FunnelStepModalProps> = ({
           delay_value: delayValue,
           delay_unit: delayUnit,
         });
-
-        if (insertError) throw insertError;
       }
 
       onSave();

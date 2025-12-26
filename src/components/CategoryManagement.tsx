@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, FolderOpen, X } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { categoriesApi } from '../lib/api';
 
 interface Category {
   id: string;
@@ -26,12 +26,7 @@ const CategoryManagement: React.FC = () => {
 
   const loadCategories = async () => {
     try {
-      const { data, error } = await supabase
-        .from('funnel_categories')
-        .select('*')
-        .order('name', { ascending: true });
-
-      if (error) throw error;
+      const data = await categoriesApi.getAll();
       setCategories(data || []);
     } catch (error) {
       console.error('Error loading categories:', error);
@@ -72,27 +67,18 @@ const CategoryManagement: React.FC = () => {
 
     try {
       if (editingCategory) {
-        const { error } = await supabase
-          .from('funnel_categories')
-          .update({
-            name: formData.name,
-            description: formData.description || null,
-            color: formData.color,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', editingCategory.id);
-
-        if (error) throw error;
+        await categoriesApi.update(editingCategory.id, {
+          name: formData.name,
+          description: formData.description || null,
+          color: formData.color,
+          updated_at: new Date().toISOString(),
+        });
       } else {
-        const { error } = await supabase
-          .from('funnel_categories')
-          .insert({
-            name: formData.name,
-            description: formData.description || null,
-            color: formData.color,
-          });
-
-        if (error) throw error;
+        await categoriesApi.create({
+          name: formData.name,
+          description: formData.description || null,
+          color: formData.color,
+        });
       }
 
       loadCategories();
@@ -109,12 +95,7 @@ const CategoryManagement: React.FC = () => {
     }
 
     try {
-      const { error } = await supabase
-        .from('funnel_categories')
-        .delete()
-        .eq('id', categoryId);
-
-      if (error) throw error;
+      await categoriesApi.delete(categoryId);
       loadCategories();
     } catch (error) {
       console.error('Error deleting category:', error);
